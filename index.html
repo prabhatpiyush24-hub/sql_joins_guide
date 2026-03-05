@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>SQL JOIN Types</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.css"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/theme/night.min.css"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css"/>
+  <style>
+    :root {
+      --blue: #1E88E5;
+      --cyan: #00ACC1;
+      --teal: #00897B;
+      --green: #69F0AE;
+      --orange: #FF8F00;
+      --red: #EF5350;
+      --purple: #CE93D8;
+      --yellow: #FFF176;
+      --card: #132F4C;
+      --card2: #1E3A5F;
+    }
+    .reveal { font-family: 'Calibri', 'Segoe UI', sans-serif; }
+    .reveal h1, .reveal h2, .reveal h3 { font-family: 'Calibri', 'Segoe UI', sans-serif; text-transform: none; }
+    .reveal h2 { color: #fff; font-size: 1.6em; }
+    .reveal h3 { color: var(--cyan); font-size: 1.1em; margin-bottom: 0.3em; }
+    .reveal p, .reveal li { font-size: 0.78em; line-height: 1.5; }
+
+    /* ── title slide ── */
+    .title-slide { background: linear-gradient(135deg, #0D1B2A 60%, #132F4C 100%); }
+    .title-slide h1 { font-size: 2.8em; font-weight: 900; color: #fff; margin-bottom: 0.1em; }
+    .title-slide .subtitle { color: var(--cyan); font-size: 1.3em; font-weight: 700; margin-bottom: 0.4em; }
+    .title-slide .tagline { color: #90CAF9; font-size: 0.85em; font-style: italic; }
+    .title-slide .joins-list { color: var(--teal); font-size: 0.8em; letter-spacing: 2px; margin-top: 0.5em; }
+    .db-icon { font-size: 5em; margin-bottom: 0.2em; }
+
+    /* ── cards ── */
+    .card {
+      background: var(--card);
+      border-radius: 10px;
+      padding: 0.7em 1em;
+      margin: 0.3em 0;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.35);
+    }
+    .card.green-card  { background: #0D2A1A; border-left: 4px solid var(--green); }
+    .card.orange-card { background: #2A1500; border-left: 4px solid var(--orange); }
+    .card.red-card    { background: #2A0D0D; border-left: 4px solid var(--red); }
+    .card.purple-card { background: #1A0D2A; border-left: 4px solid var(--purple); }
+    .card.blue-card   { background: #0D1E33; border-left: 4px solid var(--blue); }
+    .card.yellow-card { background: #2A2000; border-left: 4px solid var(--yellow); }
+    .card.tip-card    { background: #102030; border-left: 4px solid var(--cyan); }
+
+    /* ── two-column layout ── */
+    .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 1em; align-items: start; }
+    .cols3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.7em; }
+
+    /* ── code blocks ── */
+    pre { margin: 0.4em 0 !important; border-radius: 8px !important; font-size: 0.72em !important; }
+    code { border-radius: 6px !important; }
+
+    /* ── tables ── */
+    .sql-table { width: 100%; border-collapse: collapse; font-size: 0.72em; margin: 0.4em 0; }
+    .sql-table th { background: var(--blue); color: #fff; padding: 0.45em 0.8em; text-align: center; }
+    .sql-table td { padding: 0.35em 0.8em; text-align: center; color: #E0E0E0; }
+    .sql-table tr:nth-child(even) td { background: rgba(255,255,255,0.04); }
+    .sql-table tr:nth-child(odd)  td { background: rgba(255,255,255,0.01); }
+    .null { color: #FF6B6B !important; font-style: italic; }
+
+    /* ── summary table ── */
+    .sum-table { width: 100%; border-collapse: collapse; font-size: 0.68em; }
+    .sum-table th { background: #0D1B2A; color: #90CAF9; padding: 0.5em 0.6em; border: 1px solid #1E3A5F; }
+    .sum-table td { padding: 0.4em 0.6em; border: 1px solid #1E3A5F; }
+    .sum-table tr:nth-child(even) td { background: #0D1E33; }
+
+    /* ── badges ── */
+    .badge {
+      display: inline-block; padding: 0.2em 0.7em;
+      border-radius: 20px; font-size: 0.72em; font-weight: 700;
+      margin-right: 0.3em; letter-spacing: 1px;
+    }
+    .badge-blue   { background: #1565C0; color: #fff; }
+    .badge-teal   { background: #00695C; color: #fff; }
+    .badge-orange { background: #E65100; color: #fff; }
+    .badge-purple { background: #6A1B9A; color: #fff; }
+    .badge-red    { background: #B71C1C; color: #fff; }
+    .badge-yellow { background: #F57F17; color: #fff; }
+
+    /* ── step cards ── */
+    .step { display: flex; align-items: flex-start; gap: 0.8em; margin-bottom: 0.55em; }
+    .step-num {
+      min-width: 2em; height: 2em; border-radius: 50%;
+      background: var(--blue); color: #fff;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 900; font-size: 1em; flex-shrink: 0;
+    }
+    .step-content h4 { margin: 0 0 0.15em 0; color: var(--cyan); font-size: 0.9em; }
+    .step-content p  { margin: 0; color: #CFD8DC; font-size: 0.75em; }
+
+    /* ── section label ── */
+    .section-num {
+      display: inline-block;
+      background: var(--blue); color: #fff;
+      border-radius: 6px; padding: 0.1em 0.5em;
+      font-size: 0.85em; font-weight: 700; margin-right: 0.3em;
+    }
+
+    /* ── closing slide ── */
+    .closing-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.6em; margin-top: 0.5em; }
+    .closing-item { background: var(--card); border-radius: 8px; padding: 0.5em 0.7em; }
+    .closing-item .jname { font-weight: 700; font-size: 0.85em; }
+    .closing-item .jdesc { color: #90CAF9; font-size: 0.68em; margin-top: 0.15em; }
+
+    /* nav hint */
+    .nav-hint { color: #546E7A; font-size: 0.55em; margin-top: 0.8em; }
+
+    .reveal .slides section { padding: 0 1em; }
+    .reveal blockquote {
+      background: #132F4C; border-left: 4px solid var(--cyan);
+      padding: 0.4em 0.8em; border-radius: 0 6px 6px 0;
+      font-style: italic; color: #B0BEC5; font-size: 0.78em;
+      box-shadow: none; width: auto;
+    }
+    .emoji-big { font-size: 1.4em; }
+  </style>
+</head>
+<body>
+<div class="reveal">
+<div class="slides">
+
+<!-- ══════════════════════════════════════════════════════════════
+     SLIDE 1 — TITLE
+══════════════════════════════════════════════════════════════ -->
+<section data-background-gradient="linear-gradient(135deg, #0D1B2A 55%, #132F4C 100%)">
+  <div class="db-icon">🗄️</div>
+  <h1 style="font-size:2.6em; font-weight:900; color:#fff; margin:0;">SQL JOIN Types</h1>
+  <p class="subtitle" style="color:var(--cyan); font-size:1.2em; font-weight:700; margin:0.2em 0;">Theory &nbsp;•&nbsp; Story &nbsp;•&nbsp; Real Examples</p>
+  <p style="color:#90CAF9; font-style:italic; font-size:0.8em; margin:0.5em 0 0.8em;">From restaurant reservations to real SQL queries</p>
+  <p style="color:var(--teal); font-size:0.7em; letter-spacing:2px;">
+    INNER &nbsp;•&nbsp; LEFT &nbsp;•&nbsp; RIGHT &nbsp;•&nbsp; FULL OUTER &nbsp;•&nbsp; CROSS &nbsp;•&nbsp; SELF
+  </p>
+  <p class="nav-hint">Use arrow keys or swipe to navigate →</p>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════════
+     SLIDE 2 — WHAT IS A JOIN?
+══════════════════════════════════════════════════════════════ -->
+<section>
+  <h2>What is a SQL JOIN?</h2>
+  <div class="card blue-card" style="margin-bottom:0.6em;">
+    <p style="margin:0;">A <strong>JOIN</strong> merges rows from two tables based on a matching column — like a shared <code>customer_id</code> in both a Customers and an Orders table. The JOIN type you choose controls <em>which rows appear</em> in the result.</p>
+  </div>
+  <div class="cols">
+    <div>
+      <h3>📋 Customers (Left / Table A)</h3>
+      <table class="sql-table">
+        <thead><tr><th>customer_id</th><th>name</th><th>city</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td>Alice</td><td>New York</td></tr>
+          <tr><td>2</td><td>Bob</td><td>Chicago</td></tr>
+          <tr><td>3</td><td>Charlie</td><td>Los Angeles</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div>
+      <h3>📋 Orders (Right / Table B)</h3>
+      <table class="sql-table">
+        <thead><tr><th>order_id</th><th>customer_id</th><th>food</th></tr></thead>
+        <tbody>
+          <tr><td>101</td><td>1</td><td>Pizza</td></tr>
+          <tr><td>102</td><td>2</td><td>Pasta</td></tr>
+          <tr><td style="color:#FFF176;">103</td><td style="color:#FFF176;">99 ⚠️</td><td style="color:#FFF176;">Burger</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div class="card green-card" style="margin-top:0.6em;">
+    <p style="margin:0;">⚠️ <strong>Key observation:</strong> <code>customer_id 99</code> in Orders has <strong>no match</strong> in Customers. <strong>Charlie</strong> (ID 3) has <strong>no order</strong>. This mismatch is what makes each JOIN behave differently.</p>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════════
+     SLIDE 3 — INNER JOIN
+══════════════════════════════════════════════════════════════ -->
+<section>
+  <h2><span class="section-num">1</span> INNER JOIN</h2>
+  <p style="color:var(--cyan); font-style:italic; margin:0 0 0.5em;">Returns only rows with a match in <strong>BOTH</strong> tables</p>
+  <div class="cols">
+    <div>
+      <div class="card" style="margin-bottom:0.5em;">
+        <h3>📖 Theory</h3>
+        <p>Returns rows where a matching value exists in <strong>both</strong> tables. Non-matching rows are <strong>excluded entirely</strong>.</p>
+      </div>
+      <div class="card green-card">
+        <h3>🍽️ Restaurant Story</h3>
+        <blockquote>"You only get in if your name is on BOTH the reservation list AND the orders list."</blockquote>
+        <p>✅ Alice → Pizza → <strong>IN</strong><br>
+           ✅ Bob → Pasta → <strong>IN</strong><br>
+           ❌ Charlie → no order → <strong>OUT</strong><br>
+           ❌ ID 99 → no reservation → <strong>OUT</strong></p>
+      </div>
+    </div>
+    <div>
+      <h3>💻 SQL</h3>
+      <pre><code class="language-sql">SELECT c.customer_id, c.name,
+       o.food, o.amount
+FROM Customers c
+INNER JOIN Orders o
+  ON c.customer_id = o.customer_id;</code></pre>
+      <h3 style="margin-top:0.6em;">📊 Result</h3>
+      <table class="sql-table">
+        <thead><tr><th>customer_id</th><th>name</th><th>food</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td>Alice</td><td>Pizza</td></tr>
+          <tr><td>2</td><td>Bob</td><td>Pasta</td></tr>
+        </tbody>
+      </table>
+      <div class="card tip-card" style="margin-top:0.5em;">
+        <p style="margin:0;">✅ Use when you only want rows with matching data on both sides — e.g., customers who have actually placed orders.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════════
+     SLIDE 4 — LEFT JOIN
+══════════════════════════════════════════════════════════════ -->
+<section>
+  <h2><span class="section-num">2</span> LEFT JOIN <small style="font-size:0.6em; color:#90CAF9;">(LEFT OUTER JOIN)</small></h2>
+  <p style="color:var(--cyan); font-style:italic; margin:0 0 0.5em;">All rows from the left table + matched rows from the right</p>
+  <div class="cols">
+    <div>
+      <div class="card" style="margin-bottom:0.5em;">
+        <h3>📖 Theory</h3>
+        <p>Returns <strong>ALL rows from the left table</strong>. Matching rows from the right fill in; non-matching right rows become <span class="null">NULL</span>.</p>
+      </div>
+      <div class="card green-card">
+        <h3>🍽️ Restaurant Story</h3>
+        <blockquote>"List ALL reserved customers — order or not."</blockquote>
+        <p>✅ Alice → Pizza → shown<br>
+           ✅ Bob → Pasta → shown<br>
+           ✅ Charlie → <span class="null">NULL</span> food → shown (empty plate!)<br>
+           ❌ Stranger #103 → excluded</p>
+      </div>
+    </div>
+    <div>
+      <h3>💻 SQL</h3>
+      <pre><code class="language-sql">SELECT c.customer_id, c.name,
+       o.food, o.amount
+FROM Customers c
+LEFT JOIN Orders o
+  ON c.customer_id = o.customer_id;
+
+-- Anti-join: find customers with NO order
+-- Add: WHERE o.customer_id IS NULL;</code></pre>
+      <h3 style="margin-top:0.6em;">📊 Result</h3>
+      <table class="sql-table">
+        <thead><tr><th>customer_id</th><th>name</th><th>food</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td>Alice</td><td>Pizza</td></tr>
+          <tr><td>2</td><td>Bob</td><td>Pasta</td></tr>
+          <tr><td>3</td><td>Charlie</td><td class="null">NULL</td></tr>
+        </tbody>
+      </table>
+      <div class="card tip-card" style="margin-top:0.5em;">
+        <p style="margin:0;">✅ Use when you want all records from your primary table, even if no related data exists — e.g., customers without orders.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════════
+     SLIDE 5 — RIGHT JOIN
+══════════════════════════════════════════════════════════════ -->
+<section>
+  <h2><span class="section-num" style="background:var(--orange);">3</span> RIGHT JOIN <small style="font-size:0.6em; color:#90CAF9;">(RIGHT OUTER JOIN)</small></h2>
+  <p style="color:var(--cyan); font-style:italic; margin:0 0 0.5em;">All rows from the right table + matched rows from the left</p>
+  <div class="cols">
+    <div>
+      <div class="card" style="margin-bottom:0.5em;">
+        <h3>📖 Theory</h3>
+        <p>Returns <strong>ALL rows from the right table</strong>. Non-matching left rows become <span class="null">NULL</span>. It is the <em>mirror image</em> of LEFT JOIN.</p>
+        <p style="color:#90CAF9; font-size:0.85em; margin-top:0.3em;">💡 Most developers rewrite RIGHT JOIN as a LEFT JOIN by swapping table order — same result, more readable.</p>
+      </div>
+      <div class="card orange-card">
+        <h3>🍽️ Restaurant Story</h3>
+        <blockquote>"Show ALL orders — reservation or not."</blockquote>
+        <p>✅ Alice → Pizza → shown<br>
+           ✅ Bob → Pasta → shown<br>
+           ✅ Burger (ID 99) → <span class="null">NULL</span> name → shown<br>
+           ❌ Charlie → no order → excluded</p>
+      </div>
+    </div>
+    <div>
+      <h3>💻 SQL</h3>
+      <pre><code class="language-sql">SELECT c.customer_id, c.name,
+       o.food, o.amount
+FROM Customers c
+RIGHT JOIN Orders o
+  ON c.customer_id = o.customer_id;</code></pre>
+      <h3 style="margin-top:0.6em;">📊 Result</h3>
+      <table class="sql-table">
+        <thead><tr><th>customer_id</th><th>name</th><th>food</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td>Alice</td><td>Pizza</td></tr>
+          <tr><td>2</td><td>Bob</td><td>Pasta</td></tr>
+          <tr><td class="null">NULL</td><td class="null">NULL</td><td>Burger</td></tr>
+        </tbody>
+      </table>
+      <div class="card tip-card" style="margin-top:0.5em;">
+        <p style="margin:0;">✅ Use for auditing — e.g., find orders that don't belong to any known customer (potential data errors or fraud).</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════════
+     SLIDE 6 — FULL OUTER JOIN
+══════════════════════════════════════════════════════════════ -->
+<section>
+  <h2><span class="section-num" style="background:var(--purple); color:#000;">4</span> FULL OUTER JOIN</h2>
+  <p style="color:var(--cyan); font-style:italic; margin:0 0 0.5em;">All rows from <strong>both</strong> tables — NULLs fill the gaps</p>
+  <div class="cols">
+    <div>
+      <div class="card" style="margin-bottom:0.5em;">
+        <h3>📖 Theory</h3>
+        <p>Returns <strong>ALL rows from BOTH tables</strong>. Where no match exists on either side, <span class="null">NULL</span> fills the missing columns. Essentially LEFT JOIN + RIGHT JOIN combined.</p>
+      </div>
+      <div class="card purple-card">
+        <h3>🍽️ Restaurant Story</h3>
+        <blockquote>"I want the COMPLETE picture — every reservation AND every order, matched or not."</blockquote>
+        <p>✅ Alice + Bob → matched<br>
+           ✅ Charlie → <span class="null">NULL</span> food<br>
+           ✅ Burger (ID 99) → <span class="null">NULL</span> name<br>
+           Nobody is left out.</p>
+      </div>
+    </div>
+    <div>
+      <h3>💻 SQL</h3>
+      <pre><code class="language-sql">-- PostgreSQL / SQL Server
+SELECT c.name, o.food
+FROM Customers c
+FULL OUTER JOIN Orders o
+  ON c.customer_id = o.customer_id;
+
+-- MySQL workaround (no FULL OUTER JOIN):
+SELECT c.name, o.food FROM Customers c
+LEFT JOIN Orders o ON c.customer_id = o.customer_id
+UNION
+SELECT c.name, o.food FROM Customers c
+RIGHT JOIN Orders o ON c.customer_id = o.customer_id;</code></pre>
+      <h3 style="margin-top:0.5em;">📊 Result</h3>
+      <table class="sql-table">
+        <thead><tr><th>name</th><th>food</th></tr></thead>
+        <tbody>
+          <tr><td>Alice</td><td>Pizza</td></tr>
+          <tr><td>Bob</td><td>Pasta</td></tr>
+          <tr><td>Charlie</td><td class="null">NULL</td></tr>
+          <tr><td class="null">NULL</td><td>Burger</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════════
+     SLIDE 7 — CROSS JOIN
+══════════════════════════════════════════════════════════════ -->
+<section>
+  <h2><span class="section-num" style="background:var(--red);">5</span> CROSS JOIN</h2>
+  <p style="color:var(--cyan); font-style:italic; margin:0 0 0.5em;">Every row from Table A paired with every row from Table B</p>
+  <div class="cols">
+    <div>
+      <div class="card" style="margin-bottom:0.5em;">
+        <h3>📖 Theory</h3>
+        <p>Produces the <strong>Cartesian product</strong> — no <code>ON</code> clause needed. If Table A has <strong>M</strong> rows and Table B has <strong>N</strong> rows, the result has <strong>M × N rows</strong>.</p>
+      </div>
+      <div class="card red-card">
+        <h3>🍽️ Restaurant Story</h3>
+        <blockquote>"Show every customer paired with every dish — every combination."</blockquote>
+        <p>3 customers × 3 dishes = <strong>9 rows</strong><br>
+           Alice+Pizza, Alice+Pasta, Alice+Burger,<br>
+           Bob+Pizza, Bob+Pasta … and so on.</p>
+      </div>
+      <div class="card" style="background:#2A0D0D; border-left:4px solid #FF5252; margin-top:0.5em;">
+        <p style="margin:0; color:#FF8A80;">⚠️ <strong>Warning:</strong> 1,000 × 1,000 rows = 1,000,000 results. Always test on small data first!</p>
+      </div>
+    </div>
+    <div>
+      <h3>💻 SQL</h3>
+      <pre><code class="language-sql">-- Modern syntax
+SELECT c.name, d.dish_name
+FROM Customers c
+CROSS JOIN Dishes d;
+
+-- Older equivalent syntax
+SELECT c.name, d.dish_name
+FROM Customers c, Dishes d;</code></pre>
+      <h3 style="margin-top:0.6em;">📊 Sample Output (3×3)</h3>
+      <table class="sql-table">
+        <thead><tr><th>name</th><th>dish</th></tr></thead>
+        <tbody>
+          <tr><td>Alice</td><td>Pizza</td></tr>
+          <tr><td>Alice</td><td>Pasta</td></tr>
+          <tr><td>Bob</td><td>Pizza</td></tr>
+          <tr><td>Charlie</td><td>Burger</td></tr>
+          <tr><td style="color:#90CAF9;">… 5 more rows</td><td style="color:#90CAF9;">…</td></tr>
+        </tbody>
+      </table>
+      <div class="card tip-card" style="margin-top:0.5em;">
+        <p style="margin:0;">✅ Use for generating combinations — products × sizes, test data, shift scheduling matrices.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════════
+     SLIDE 8 — SELF JOIN
+══════════════════════════════════════════════════════════════ -->
+<section>
+  <h2><span class="section-num" style="background:#7B6914;">6</span> SELF JOIN</h2>
+  <p style="color:var(--cyan); font-style:italic; margin:0 0 0.5em;">A table joined with itself using aliases</p>
+  <div class="cols">
+    <div>
+      <div class="card" style="margin-bottom:0.5em;">
+        <h3>📖 Theory</h3>
+        <p>A table is joined <strong>with itself</strong>. You must use <strong>table aliases</strong> to distinguish the two instances. Perfect for <em>hierarchical data</em> where a foreign key references the same table's primary key.</p>
+      </div>
+      <div class="card yellow-card">
+        <h3>🍽️ Restaurant Story</h3>
+        <p>The staff table has everyone — but the <code>manager_id</code> column points back to another row in the same table.</p>
+        <table class="sql-table" style="margin-top:0.3em;">
+          <thead><tr><th>emp_id</th><th>name</th><th>manager_id</th></tr></thead>
+          <tbody>
+            <tr><td>1</td><td>Alice</td><td>3</td></tr>
+            <tr><td>2</td><td>Bob</td><td>3</td></tr>
+            <tr><td>3</td><td>Charlie 👑</td><td class="null">NULL</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div>
+      <h3>💻 SQL</h3>
+      <pre><code class="language-sql">-- 'e' = employee, 'm' = their manager
+-- Both aliases point to the SAME table
+SELECT
+  e.name    AS employee,
+  m.name    AS manager
+FROM Employees e
+LEFT JOIN Employees m
+  ON e.manager_id = m.emp_id;</code></pre>
+      <h3 style="margin-top:0.6em;">📊 Result</h3>
+      <table class="sql-table">
+        <thead><tr><th>employee</th><th>manager</th></tr></thead>
+        <tbody>
+          <tr><td>Alice</td><td>Charlie</td></tr>
+          <tr><td>Bob</td><td>Charlie</td></tr>
+          <tr><td>Charlie 👑</td><td class="null">NULL</td></tr>
+        </tbody>
+      </table>
+      <div class="card tip-card" style="margin-top:0.5em;">
+        <p style="margin:0;">✅ Use for org charts, category trees, social network connections, or comparing rows within the same table.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════════
+     SLIDE 9 — QUICK REFERENCE
+══════════════════════════════════════════════════════════════ -->
+<section>
+  <h2>Quick Reference Summary</h2>
+  <table class="sum-table">
+    <thead>
+      <tr>
+        <th>JOIN Type</th>
+        <th>Left-only</th>
+        <th>Matched</th>
+        <th>Right-only</th>
+        <th>Best Used For</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="badge badge-blue">INNER</span></td>
+        <td style="text-align:center;">❌</td><td style="text-align:center;">✅</td><td style="text-align:center;">❌</td>
+        <td>Strict matches — orders with known customers</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-teal">LEFT</span></td>
+        <td style="text-align:center;">✅</td><td style="text-align:center;">✅</td><td style="text-align:center;">❌</td>
+        <td>All from left, even without a match on right</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-orange">RIGHT</span></td>
+        <td style="text-align:center;">❌</td><td style="text-align:center;">✅</td><td style="text-align:center;">✅</td>
+        <td>All from right — auditing unmatched orders</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-purple">FULL OUTER</span></td>
+        <td style="text-align:center;">✅</td><td style="text-align:center;">✅</td><td style="text-align:center;">✅</td>
+        <td>Full reconciliation — compare two datasets</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-red">CROSS</span></td>
+        <td style="text-align:center;">—</td><td style="text-align:center;">All combos</td><td style="text-align:center;">—</td>
+        <td>Generate combinations — sizes × colors × products</td>
+      </tr>
+      <tr>
+        <td><span class="badge badge-yellow">SELF</span></td>
+        <td style="text-align:center;">—</td><td style="text-align:center;">Same table</td><td style="text-align:center;">—</td>
+        <td>Hierarchies, org charts, same-table comparisons</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="cols" style="margin-top:0.7em;">
+    <div class="card tip-card">
+      <h3>✅ Best Practices</h3>
+      <p>• Always alias tables (c, o, e)<br>
+         • Start with INNER JOIN, switch only when needed<br>
+         • Index your JOIN columns for performance<br>
+         • Use <code>IS NULL</code> after LEFT JOIN for anti-joins</p>
+    </div>
+    <div class="card red-card">
+      <h3>❌ Common Mistakes</h3>
+      <p>• Forgetting the <code>ON</code> clause (accidental CROSS JOIN)<br>
+         • Joining on non-indexed columns (slow scans)<br>
+         • Using <code>= NULL</code> instead of <code>IS NULL</code><br>
+         • WHERE on right table column converts LEFT → INNER</p>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════════
+     SLIDE 10 — CLOSING
+══════════════════════════════════════════════════════════════ -->
+<section data-background-gradient="linear-gradient(135deg, #0D1B2A 55%, #132F4C 100%)">
+  <h2 style="font-size:1.5em;">You now know SQL JOINs 🎉</h2>
+  <div class="closing-grid">
+    <div class="closing-item">
+      <div class="jname" style="color:#90CAF9;">INNER JOIN</div>
+      <div class="jdesc">Strict matches only</div>
+    </div>
+    <div class="closing-item">
+      <div class="jname" style="color:#80CBC4;">LEFT JOIN</div>
+      <div class="jdesc">All from left + matched right</div>
+    </div>
+    <div class="closing-item">
+      <div class="jname" style="color:#FFCC80;">RIGHT JOIN</div>
+      <div class="jdesc">All from right + matched left</div>
+    </div>
+    <div class="closing-item">
+      <div class="jname" style="color:#CE93D8;">FULL OUTER JOIN</div>
+      <div class="jdesc">Everything from both tables</div>
+    </div>
+    <div class="closing-item">
+      <div class="jname" style="color:#EF9A9A;">CROSS JOIN</div>
+      <div class="jdesc">Every possible combination</div>
+    </div>
+    <div class="closing-item">
+      <div class="jname" style="color:#FFF176;">SELF JOIN</div>
+      <div class="jdesc">Table joins itself (hierarchies)</div>
+    </div>
+  </div>
+  <p style="color:#B0BEC5; font-style:italic; margin-top:0.8em; font-size:0.8em;">
+    Master these 6 JOIN types and you'll handle 99% of real-world SQL with confidence.
+  </p>
+</section>
+
+</div><!-- .slides -->
+</div><!-- .reveal -->
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.6.1/reveal.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script>
+  Reveal.initialize({
+    hash: true,
+    slideNumber: true,
+    transition: 'slide',
+    transitionSpeed: 'fast',
+    controls: true,
+    progress: true,
+    center: false,
+    plugins: []
+  });
+  hljs.highlightAll();
+</script>
+</body>
+</html>
